@@ -302,17 +302,10 @@ def download_and_send(
                 detail="No video was downloaded."
             )
 
-        video = files[0]
-
-        processed_video = output_dir / "telegram_video.mp4"
-
-        process_video(
-            video,
-            processed_video
-        )
+                video = files[0]
 
         telegram_result = send_video_to_telegram(
-            processed_video,
+            video,
             caption
         )
 
