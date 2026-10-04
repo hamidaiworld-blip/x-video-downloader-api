@@ -101,65 +101,6 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.get("/telegram-test")
-def telegram_test():
-
-    if not TELEGRAM_BOT_TOKEN:
-        raise HTTPException(
-            status_code=500,
-            detail="TELEGRAM_BOT_TOKEN is not configured."
-        )
-
-    telegram_url = (
-        f"https://api.telegram.org/bot"
-        f"{TELEGRAM_BOT_TOKEN}/getMe"
-    )
-
-    try:
-        response = requests.get(
-            telegram_url,
-            timeout=30
-        )
-
-        return {
-            "http_status": response.status_code,
-            "telegram_response": response.json()
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=502,
-            detail=str(e)
-        )
-
-    if not TELEGRAM_BOT_TOKEN:
-        raise HTTPException(
-            status_code=500,
-            detail="TELEGRAM_BOT_TOKEN is not configured."
-        )
-
-    telegram_url = (
-        f"https://api.telegram.org/bot"
-        f"{TELEGRAM_BOT_TOKEN}/getMe"
-    )
-
-    try:
-        response = requests.get(
-            telegram_url,
-            timeout=30
-        )
-
-        return {
-            "http_status": response.status_code,
-            "telegram_response": response.json()
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=502,
-            detail=str(e)
-        )
-
 
 @app.get("/download")
 def download(
