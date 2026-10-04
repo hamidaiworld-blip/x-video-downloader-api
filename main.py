@@ -233,7 +233,6 @@ def download(
             detail="Download timed out."
         )
 
-
 @app.get("/download-and-send")
 def download_and_send(
     url: str,
@@ -302,7 +301,7 @@ def download_and_send(
                 detail="No video was downloaded."
             )
 
-                video = files[0]
+        video = files[0]
 
         telegram_result = send_video_to_telegram(
             video,
@@ -319,7 +318,7 @@ def download_and_send(
             "success": True,
             "telegram_sent": True,
             "telegram_message_id": message_id,
-            "filename": processed_video.name
+            "filename": video.name
         }
 
     except subprocess.TimeoutExpired:
