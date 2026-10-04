@@ -29,6 +29,51 @@ def check_key(x_api_key):
             detail="Invalid API key"
         )
 
+def process_video(input_path, output_path):
+    command = [
+        "ffmpeg",
+        "-y",
+        "-i", str(input_path),
+
+        # Video
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "23",
+
+        # Keep original dimensions unless they are unusually large
+        "-vf", "scale='min(1280,iw)':-2",
+
+        # Audio
+        "-c:a", "aac",
+        "-b:a", "128k",
+
+        # Make the MP4 streamable
+        "-movflags", "+faststart",
+
+        str(output_path)
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        timeout=180
+    )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=422,
+            detail="Could not process the downloaded video."
+        )
+
+    if not output_path.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="Processed video was not created."
+        )
+
+    return output_path
+
 
 def send_video_to_telegram(video_path, caption):
     if not TELEGRAM_BOT_TOKEN:
@@ -55,6 +100,7 @@ def send_video_to_telegram(video_path, caption):
                 data={
                     "chat_id": TELEGRAM_CHAT_ID,
                     "caption": caption,
+                    "supports_streaming": "true"
                 },
                 files={
                     "video": (
@@ -191,7 +237,7 @@ def download(
 @app.get("/download-and-send")
 def download_and_send(
     url: str,
-    caption: str = "New video",
+    caption: str = "",
     x_api_key: str | None = Header(default=None)
 ):
     check_key(x_api_key)
@@ -256,12 +302,19 @@ def download_and_send(
                 detail="No video was downloaded."
             )
 
-        video = files[0]
+       video = files[0]
 
-        telegram_result = send_video_to_telegram(
-            video,
-            caption
-        )
+processed_video = output_dir / "telegram_video.mp4"
+
+process_video(
+    video,
+    processed_video
+)
+
+telegram_result = send_video_to_telegram(
+    processed_video,
+    caption
+) 
 
         message_id = (
             telegram_result
