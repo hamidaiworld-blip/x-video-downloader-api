@@ -259,7 +259,7 @@ def download_and_send(
         output_dir / "%(id)s.%(ext)s"
     )
 
-        command = [
+    command = [
         "yt-dlp",
         "--no-playlist",
         "--max-filesize", "48M",
@@ -286,7 +286,7 @@ def download_and_send(
 
             raise HTTPException(
                 status_code=422,
-                detail="Could not download the X video."
+                detail="Video does not meet the required duration or could not be downloaded."
             )
 
         files = list(output_dir.glob("*"))
