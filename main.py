@@ -302,19 +302,19 @@ def download_and_send(
                 detail="No video was downloaded."
             )
 
-       video = files[0]
+        video = files[0]
 
-processed_video = output_dir / "telegram_video.mp4"
+        processed_video = output_dir / "telegram_video.mp4"
 
-process_video(
-    video,
-    processed_video
-)
+        process_video(
+            video,
+            processed_video
+        )
 
-telegram_result = send_video_to_telegram(
-    processed_video,
-    caption
-) 
+        telegram_result = send_video_to_telegram(
+            processed_video,
+            caption
+        )
 
         message_id = (
             telegram_result
@@ -326,7 +326,7 @@ telegram_result = send_video_to_telegram(
             "success": True,
             "telegram_sent": True,
             "telegram_message_id": message_id,
-            "filename": video.name
+            "filename": processed_video.name
         }
 
     except subprocess.TimeoutExpired:
