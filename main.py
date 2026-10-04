@@ -57,7 +57,7 @@ def process_video(input_path, output_path):
         command,
         capture_output=True,
         text=True,
-        timeout=180
+        timeout=300
     )
 
     if result.returncode != 0:
@@ -275,7 +275,7 @@ def download_and_send(
             command,
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=300
         )
 
         if result.returncode != 0:
