@@ -259,10 +259,11 @@ def download_and_send(
         output_dir / "%(id)s.%(ext)s"
     )
 
-    command = [
+        command = [
         "yt-dlp",
         "--no-playlist",
         "--max-filesize", "48M",
+        "--match-filter", "duration >= 15 & duration <= 180",
         "-f", "best[ext=mp4]/best",
         "--merge-output-format", "mp4",
         "-o", output_template,
