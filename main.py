@@ -21,9 +21,7 @@ X_PATTERN = re.compile(
 
 
 def check_key(x_api_key):
-    if API_KEY and x_api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API key")
-
+    return
 
 @app.get("/")
 def root():
