@@ -304,6 +304,8 @@ def download_and_send(
 
         video = files[0]
 
+        video_size = video.stat().st_size
+
         telegram_result = send_video_to_telegram(
             video,
             caption
@@ -315,12 +317,13 @@ def download_and_send(
             .get("message_id")
         )
 
-        return {
+         return {
             "success": True,
             "telegram_sent": True,
             "telegram_message_id": message_id,
-            "filename": video.name
-        }
+            "filename": video.name,
+            "size_mb": round(video_size / (1024 * 1024), 2)
+                }
 
     except subprocess.TimeoutExpired:
         shutil.rmtree(
