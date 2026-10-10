@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, File, Form, UploadFile
 
 
 app = FastAPI(
@@ -706,6 +706,62 @@ def download_and_send(
 # ============================================================
 # NEW: GENERIC DIRECT MEDIA → TELEGRAM
 # ============================================================
+
+@app.post("/upload-and-send")
+async def upload_and_send(
+    video: UploadFile = File(...),
+    caption: str = Form(""),
+    x_api_key: str | None = Header(default=None),
+):
+    """Accept a validated MP4 from GitHub Actions and publish it to Telegram.
+
+    Conversion happens on the GitHub runner to avoid consuming Render's free
+    instance CPU for transcoding. This endpoint only accepts MP4 uploads.
+    """
+    check_key(x_api_key)
+
+    content_type = str(video.content_type or "").casefold()
+    if content_type not in {"video/mp4", "application/octet-stream"}:
+        raise HTTPException(status_code=415, detail="Only MP4 video uploads are accepted.")
+
+    job_id = str(uuid.uuid4())
+    output_dir = DOWNLOAD_DIR / job_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+    video_path = output_dir / "video.mp4"
+    max_size = 48 * 1024 * 1024
+    total_bytes = 0
+
+    try:
+        with video_path.open("wb") as output:
+            while True:
+                chunk = await video.read(1024 * 1024)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > max_size:
+                    raise HTTPException(status_code=413, detail="Video exceeds the 48 MB limit.")
+                output.write(chunk)
+
+        if total_bytes == 0:
+            raise HTTPException(status_code=422, detail="Uploaded video is empty.")
+
+        duration = validate_video(video_path)
+        telegram_result = send_video_to_telegram(video_path, caption)
+        message_id = telegram_result.get("result", {}).get("message_id")
+
+        return {
+            "success": True,
+            "telegram_sent": True,
+            "telegram_message_id": message_id,
+            "filename": video_path.name,
+            "duration": round(duration, 3),
+            "file_size": total_bytes,
+        }
+
+    finally:
+        await video.close()
+        shutil.rmtree(output_dir, ignore_errors=True)
+
 
 @app.get("/send-media-and-send")
 def send_media_and_send(
